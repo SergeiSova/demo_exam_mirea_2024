@@ -5,7 +5,6 @@ namespace Demo
 {
     public partial class Login : Window
     {
-        string ConnectionString = @"Server = ";
         public Login()
         {
             InitializeComponent();
@@ -13,47 +12,46 @@ namespace Demo
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
-            string sql = "SELECT post, password FROM Entity WHERE Login=@logintext";
-            string logintext = login.Text;
-            string passwordtext = password.Text;
-
-            using SqlConnection conn = new SqlConnection(ConnectionString);
-            conn.Open();
-            using SqlCommand cmd = new SqlCommand(sql, conn);
-            using SqlDataReader reader = cmd.ExecuteReader();
-            cmd.Parameters.AddWithValue("login", logintext);
-
-            if (reader.Read())
+            string loginText = login.Text.Trim();
+            if (loginText.Length == 0 || password.Password.Length == 0)
             {
-                string dbpassword = reader.GetString(1).ToString();
-
-                if (dbpassword == passwordtext)
-                {
-                    string role = reader.GetString(0).ToString();
-
-                    login.Text = "";
-                    password.Text = "";
-
-                    Window menu = role switch
-                    {
-                        "Users" => new MenuUser(),
-                        _ => null,
-
-                    };
-
-                    menu?.Show();
-                    Close();
-                }
-
-                else
-                {
-                    MessageBox.Show("");
-                }
+                MessageBox.Show("Введите логин и пароль.");
+                return;
             }
 
-            else
+            try
             {
-                MessageBox.Show("");
+                using SqlConnection conn = Db.Open();
+                using SqlCommand cmd = new SqlCommand("SELECT Post, PasswordHash FROM Users WHERE Login=@login", conn);
+                cmd.Parameters.AddWithValue("@login", loginText);
+                using SqlDataReader reader = cmd.ExecuteReader();
+
+                if (!reader.Read() || !PasswordHasher.Verify(password.Password, reader.GetString(1)))
+                {
+                    MessageBox.Show("Неверный логин или пароль.");
+                    return;
+                }
+
+                Window? menu = reader.GetString(0) switch
+                {
+                    "Users" => new MenuUser(),
+                    "Executor" => new MenuExecutor(),
+                    "Manager" => new MenuManager(),
+                    _ => null,
+                };
+
+                if (menu is null)
+                {
+                    MessageBox.Show("Для этой роли нет доступного меню.");
+                    return;
+                }
+
+                menu.Show();
+                Close();
+            }
+            catch (SqlException)
+            {
+                MessageBox.Show("Не удалось подключиться к базе данных.");
             }
         }
     }

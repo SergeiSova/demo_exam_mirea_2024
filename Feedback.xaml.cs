@@ -10,7 +10,7 @@ namespace Demo
         public Feedback()
         {
             InitializeComponent();
-            QrCode("https://google.com");
+            QrCode(Environment.GetEnvironmentVariable("DEMO_FEEDBACK_URL") ?? "https://github.com/SergeiSova/demo_exam_mirea_2024/issues");
         }
 
         void QrCode(string url)

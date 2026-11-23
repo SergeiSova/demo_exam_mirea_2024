@@ -13,6 +13,6 @@
         <Button Content="Войти" HorizontalAlignment="Center" Margin="0,355,0,0" VerticalAlignment="Top" Height="41" Width="144" Click="Button_Click"/>
         <TextBox x:Name="login" HorizontalAlignment="Left" Margin="329,0,0,0" TextWrapping="Wrap" VerticalAlignment="Center" Width="261" Height="40"/>
         <Label Content="Пароль" HorizontalAlignment="Left" Margin="214,254,0,0" VerticalAlignment="Top" FontSize="22"/>
-        <TextBox x:Name="password" HorizontalAlignment="Left" Margin="329,263,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="261" Height="40"/>
+        <PasswordBox x:Name="password" HorizontalAlignment="Left" Margin="329,263,0,0" VerticalAlignment="Top" Width="261" Height="40"/>
     </Grid>
 </Window>

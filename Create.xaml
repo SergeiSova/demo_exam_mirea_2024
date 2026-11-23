@@ -8,7 +8,7 @@
         Title="Create" Height="450" Width="800"
         WindowStartupLocation="CenterScreen">
     <Grid>
-        <TextBox x:Name="Name" HorizontalAlignment="Left" Margin="162,92,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" Height="21"/>
+        <TextBox x:Name="FullName" HorizontalAlignment="Left" Margin="162,92,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" Height="21"/>
         <Label Content="ФИО" HorizontalAlignment="Left" Margin="10,92,0,0" VerticalAlignment="Top"/>
         <TextBox x:Name="Phone" HorizontalAlignment="Left" Margin="162,143,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
         <Label Content="Телефон" HorizontalAlignment="Left" Margin="10,139,0,0" VerticalAlignment="Top"/>
