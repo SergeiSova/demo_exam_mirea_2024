@@ -5,7 +5,6 @@ namespace Demo
 {
     public partial class Create : Window
     {
-        string ConnectionString = @"Server = ";
         public Create()
         {
             InitializeComponent();
@@ -13,37 +12,55 @@ namespace Demo
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
-            string sql = "INSEAR INTO Enrity () SET (@)";
+            if (string.IsNullOrWhiteSpace(FullName.Text) || string.IsNullOrWhiteSpace(Phone.Text) ||
+                string.IsNullOrWhiteSpace(Device.Text))
+            {
+                MessageBox.Show("Заполните ФИО, телефон и оборудование.");
+                return;
+            }
 
-            Random random = new Random();
-            int id = random.Next(1, 10000);
-
-            using SqlConnection sqlConnection = new SqlConnection(ConnectionString);
-            sqlConnection.Open();
-            using SqlCommand sqlCommand = new SqlCommand(sql, sqlConnection);
-            sqlCommand.Parameters.AddWithValue("ФИО", Name.Text);
+            const string sql = @"INSERT INTO Entity (Name, Phone, Email, Device, SN, CommentsUser)
+                                 VALUES (@Name, @Phone, @Email, @Device, @SN, @Comment)";
 
             try
             {
-                sqlCommand.ExecuteNonQuery();
-                MessageBox.Show("");
-            } 
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message);
-            }
-            
+                using SqlConnection connection = Db.Open();
+                using SqlCommand command = new SqlCommand(sql, connection);
+                command.Parameters.AddWithValue("@Name", FullName.Text.Trim());
+                command.Parameters.AddWithValue("@Phone", Phone.Text.Trim());
+                command.Parameters.AddWithValue("@Email", Db.Value(Email.Text));
+                command.Parameters.AddWithValue("@Device", Device.Text.Trim());
+                command.Parameters.AddWithValue("@SN", Db.Value(SN.Text));
+                command.Parameters.AddWithValue("@Comment", Db.Value(Com.Text));
+                command.ExecuteNonQuery();
 
+                MessageBox.Show("Заявка сохранена.");
+                ClearFields();
+            }
+            catch (SqlException)
+            {
+                MessageBox.Show("Не удалось сохранить заявку.");
+            }
+        }
+
+        private void ClearFields()
+        {
+            FullName.Clear();
+            Phone.Clear();
+            Email.Clear();
+            Device.Clear();
+            SN.Clear();
+            Com.Clear();
         }
 
         private void Button_Click_1_2(object sender, RoutedEventArgs e)
         {
-           Name.Clear();
+            ClearFields();
         }
 
         private void Button_Click_2(object sender, RoutedEventArgs e)
         {
-            new MenuExecutor().Show();
+            new MenuUser().Show();
             Close();
         }
     }

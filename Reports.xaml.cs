@@ -14,15 +14,19 @@ namespace Demo
 
         private void FillDataGrid()
         {
-            string connectionString = @"Server=(localdb)\MSSQLLocalDB;Database=Sova;TrustServerCertificate=True;Trusted_Connection=True;";
             DataTable dt = new("Entity");
-            string sqlQuery = "SELECT id, Name, Phone, Email, Device, SN, CommentsUser FROM Entity";
+            string sqlQuery = "SELECT id, Name, Phone, Email, Device, SN, CommentsUser, Status, Executor, StartDate, EndDate FROM Entity";
 
-            using (SqlConnection con = new(connectionString))
-            using (SqlCommand cmd = new(sqlQuery, con))
-            using (SqlDataAdapter dataAdapter = new(cmd))
+            try
             {
-                dataAdapter.Fill(dt); // Открывает и закрывает соединение автоматически
+                using SqlConnection con = new(Db.ConnectionString);
+                using SqlCommand cmd = new(sqlQuery, con);
+                using SqlDataAdapter dataAdapter = new(cmd);
+                dataAdapter.Fill(dt);
+            }
+            catch (SqlException)
+            {
+                MessageBox.Show("Не удалось загрузить заявки.");
             }
 
             UsersDataGrid.ItemsSource = dt.DefaultView;

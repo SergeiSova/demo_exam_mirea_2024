@@ -5,52 +5,76 @@ namespace Demo
 {
     public partial class Finish : Window
     {
-        string ConnectionString = @"Server = ";
-
         public Finish()
         {
             InitializeComponent();
-           LoadAppId();
+            LoadAppId();
         }
 
-        string Status()
+        private string? Status()
         {
-            return "";
+            if (WaitingRadioButton.IsChecked == true) return "В ожидании";
+            if (InProgressRadioButton.IsChecked == true) return "В работе";
+            if (NotDoneRadioButton.IsChecked == true) return "Не выполнено";
+            if (DoneRadioButton.IsChecked == true) return "Выполнено";
+            return null;
         }
 
-        void LoadAppId()
+        private void LoadAppId()
         {
-            string sql = "SELECT id FROM Etity";
-
-            using SqlConnection conn = new SqlConnection(ConnectionString);
-            conn.Open();
-            using SqlCommand cmd = new SqlCommand(sql, conn);
-            using SqlDataReader reader = cmd.ExecuteReader();
-
-            while (reader.Read())
+            try
             {
-                ApplicationIdComboBox.Items.Add(reader["id"].ToString());
+                using SqlConnection conn = Db.Open();
+                using SqlCommand cmd = new SqlCommand("SELECT id FROM Entity ORDER BY id", conn);
+                using SqlDataReader reader = cmd.ExecuteReader();
+
+                while (reader.Read())
+                {
+                    ApplicationIdComboBox.Items.Add(reader.GetInt32(0));
+                }
+            }
+            catch (SqlException)
+            {
+                MessageBox.Show("Не удалось загрузить заявки.");
             }
         }
 
-        
-
         private void SaveButton_Click(object sender, RoutedEventArgs e)
         {
-            string sql = @"UPDATE Entity SET Status=@Status, Start, End, Comment";
+            string? status = Status();
+            if (ApplicationIdComboBox.SelectedItem is not int id || status is null)
+            {
+                MessageBox.Show("Выберите заявку и статус.");
+                return;
+            }
 
-            using SqlConnection conn = new SqlConnection(ConnectionString);
-            conn.Open();
-            using SqlCommand cmd = new SqlCommand( sql, conn);
-            cmd.Parameters.AddWithValue("start", AcceptedDatePicker.SelectedDate);
-            cmd.Parameters.AddWithValue("Comm", CommentsTextBox.Text);
-            cmd.Parameters.AddWithValue("id", ApplicationIdComboBox.SelectedItem.ToString());
+            if (AcceptedDatePicker.SelectedDate > CompletedDatePicker.SelectedDate)
+            {
+                MessageBox.Show("Дата выполнения не может быть раньше даты принятия.");
+                return;
+            }
 
-            int result = cmd.ExecuteNonQuery();
-            MessageBox.Show(result > 0 ? "" : "");
+            const string sql = @"UPDATE Entity
+                                 SET Status=@Status, StartDate=@Start, EndDate=@End, Comment=@Comment
+                                 WHERE id=@id";
+
+            try
+            {
+                using SqlConnection conn = Db.Open();
+                using SqlCommand cmd = new SqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@Status", status);
+                cmd.Parameters.AddWithValue("@Start", Db.Value(AcceptedDatePicker.SelectedDate));
+                cmd.Parameters.AddWithValue("@End", Db.Value(CompletedDatePicker.SelectedDate));
+                cmd.Parameters.AddWithValue("@Comment", Db.Value(CommentsTextBox.Text));
+                cmd.Parameters.AddWithValue("@id", id);
+
+                MessageBox.Show(cmd.ExecuteNonQuery() > 0 ? "Заявка обновлена." : "Заявка не найдена.");
+            }
+            catch (SqlException)
+            {
+                MessageBox.Show("Не удалось сохранить заявку.");
+            }
         }
-
-        
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
